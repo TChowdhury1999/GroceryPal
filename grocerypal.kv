@@ -1,0 +1,52 @@
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
+#:import FallOutTransition kivy.uix.screenmanager.FallOutTransition
+
+<MainScreen>:
+    BoxLayout:
+        # Title 
+        orientation: "vertical"
+        Label:
+            halign: "center"
+            valign: "center"
+            text: "Grocery Pal"
+            size_hint_y: 0.1
+        # Lower division will be scrolling layout
+        MainScreenLower:
+
+<MainScreenLower>:
+    MainScreenLowerScroll:
+    Button:
+        id: confirm_add_food_button
+        text: "Add Food"
+        pos_hint: {"right": 0.95, "y": 0.16}
+        size_hint: 0.2, 0.05
+    ToggleButton:
+        id: toggle_food_button
+        text: "+"
+        pos_hint: {"x":0.9, "y":0.1}
+        size_hint: 0.05, 0.05
+        on_state: 
+            root.update_confirm_button_position()
+        
+
+
+<MainScreenLowerScroll@ScrollView>:
+    scroll_distance: "5dp"
+    FoodCardsList:
+
+
+<FoodCardsList>:
+    orientation: "vertical"
+    spacing: "10dp"
+    size_hint_y: None
+    height: self.minimum_height
+
+<ConfirmAddFoodScreen>:
+    RelativeLayout:
+        Button:
+            text: "Add Food"
+            pos_hint: {"x":0.8, "y":0.2}
+            size_hint: 0.1, 0.1
+            on_release: 
+                root.manager.transition = FallOutTransition()
+                app.root.current = "main_screen"
