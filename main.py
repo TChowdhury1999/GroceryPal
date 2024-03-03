@@ -9,15 +9,17 @@ from kivy.uix.label import Label
 from kivy.metrics import dp
 from kivy.core.window import Window
 from kivy.config import Config
+from kivy.uix.textinput import TextInput
+from kivy.uix.popup import Popup
 
-
-class ConfirmAddFoodScreen(Screen):
-    pass
 
 class MainScreen(Screen):
     pass
 
 class AddFoodScreen(Screen):
+    pass
+
+class AddFoodScreenSaveBackDiv(BoxLayout):
     pass
 
 class MainScreenLower(RelativeLayout):
@@ -32,7 +34,6 @@ class MainScreenLower(RelativeLayout):
         else:
             confirm_button.pos_hint["right"] = 0
             confirm_button.x = 0
-
 
 class FoodCardsList(BoxLayout):
     def __init__(self, **kwargs):
@@ -51,7 +52,6 @@ class FoodCardsList(BoxLayout):
         blankSpace = Label(text=" ", size_hint=(1, None), height=dp(100))
         self.add_widget(blankSpace)
 
-
 class GroceryPalApp(App):
     def build(self):
         # set window size
@@ -59,6 +59,7 @@ class GroceryPalApp(App):
         # Create the screen manager
         sm = ScreenManager()
         sm.add_widget(MainScreen(name='main_screen'))
+        sm.add_widget(AddFoodScreen(name="add_food_screen"))
         return sm
     
     def load_food_data(self):
