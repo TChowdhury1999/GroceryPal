@@ -6,6 +6,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 from kivy.uix.button import Button
+from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.label import Label
 from kivy.metrics import dp
 from kivy.core.window import Window
@@ -17,16 +18,41 @@ from kivy.clock import Clock
 
 
 class Card(RelativeLayout):
-    def __init__(self, text, **kwargs):
+    def __init__(self, card_text, **kwargs):
         super(Card, self).__init__(**kwargs)
         self.size_hint = (None, None) 
         self.size = (dp(400), dp(100)) 
-        card = Button(text = text, size_hint = (1, 1), font_size = dp(16), disabled_color = "black",
+
+        card = Button(text = card_text, size_hint = (1, 1), font_size = dp(16), disabled_color = "black",
                 background_normal = "", background_color = (0.9, 0.9, 0.9, 1), disabled = True)
         self.add_widget(card)
-        expand_options_button = Button(text="...", size_hint=(0.05, 0.05), font_size = dp(18), pos_hint={"x":0.93, "y":0.8}, color="black",
-                                       background_normal = "", background_color = (0.9, 0.9, 0.9, 0.4))
+
+        expand_options_button = ToggleButton(text="•••",  size_hint=(0.05, 0.15), font_size = dp(18), pos_hint={"x":0.93, "y":0.77}, color="black",
+                                       background_normal = "", background_color = (0.9, 0.9, 0.9, 0))
+        self.ids["expand_options"] = expand_options_button
+        expand_options_button.bind(on_release=self.update_confirm_remove_position)
         self.add_widget(expand_options_button)
+
+        confirm_remove_button = Button(text="Confirm Remove?", size_hint=(0.3, 0.05), font_size = dp(12), pos_hint={"x":2, "y":0.8}, color="red",
+                                       background_normal = "", background_color = (0.9, 0.9, 0.9, 0.4))
+        self.ids["confirm_remove"] = confirm_remove_button
+        self.add_widget(confirm_remove_button)
+    
+    def update_confirm_remove_position(self, instance):
+        print(self.ids)
+        confirm_button = self.ids.confirm_remove
+        expand_options_button = self.ids.expand_options
+        window_width, _ = Window.size
+        if expand_options_button.state == "down":
+            print("down")
+            confirm_button.pos_hint["x"] = 0.6
+            confirm_button.x = window_width * 0.6
+        else:
+            print("up")
+            confirm_button.pos_hint["x"] = 2
+            confirm_button.x = window_width*2
+
+
 
 class FoodCardsList(BoxLayout):
     def __init__(self, **kwargs):
@@ -40,6 +66,7 @@ class FoodCardsList(BoxLayout):
         for row in food_df.rows(named=True):
             card_text = row["name"]
             card = Card(card_text)
+            self.ids["card_"+card_text] = card
             self.add_widget(card)
         
         # Create a blank label for space
