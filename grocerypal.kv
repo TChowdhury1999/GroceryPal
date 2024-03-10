@@ -1,4 +1,5 @@
 <MainScreen>:
+    color: "white"
     BoxLayout:
         # Title 
         orientation: "vertical"
@@ -7,8 +8,11 @@
             valign: "center"
             text: "Grocery Pal"
             size_hint_y: 0.1
+            font_size: "32dp"
+            color: "black"
         # Lower division will be scrolling layout
         MainScreenLower:
+
 
 <MainScreenLower>:
     MainScreenLowerScroll:
@@ -27,15 +31,13 @@
         on_state: 
             root.update_confirm_button_position()
         
-<MainScreenLowerScroll@ScrollView>:
-    scroll_distance: "5dp"
-    FoodCardsList:
 
 <FoodCardsList>:
     orientation: "vertical"
     spacing: "10dp"
     size_hint_y: None
     height: self.minimum_height
+
 
 <AddFoodScreen>:
     BoxLayout:
