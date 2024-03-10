@@ -13,18 +13,23 @@ from kivy.core.window import Window
 from kivy.config import Config
 from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Rectangle, RoundedRectangle, Line
 from kivy.clock import Clock
 
 
 class Card(RelativeLayout):
-    def __init__(self, card_text, **kwargs):
+    def __init__(self, card_text, parent_padding, **kwargs):
         super(Card, self).__init__(**kwargs)
         self.size_hint = (None, None) 
-        self.size = (dp(400), dp(100)) 
+        self.size = (dp(400-parent_padding*2), dp(100)) 
 
         card = Button(text = card_text, size_hint = (1, 1), font_size = dp(16), disabled_color = "black",
-                background_normal = "", background_color = (0.9, 0.9, 0.9, 1), disabled = True)
+                background_normal = "", background_color = (0.9, 0.9, 0.9, 0), disabled = True)
+        with card.canvas.before:
+            Color(0.7, 0.7, 0.7, 1)
+            RoundedRectangle(pos=card.pos, size=self.size, radius=[10, 10, 10, 10])
+            Color(0.8, 0.8, 0.8, 1)
+            RoundedRectangle(pos=(card.pos[0]+5, card.pos[1]+5), size=(self.size[0]-10, self.size[1]-10),  radius=[10, 10, 10, 10])
         self.add_widget(card)
 
         expand_options_button = ToggleButton(text="•••",  size_hint=(0.05, 0.15), font_size = dp(18), pos_hint={"x":0.93, "y":0.77}, color="black",
@@ -47,10 +52,12 @@ class Card(RelativeLayout):
             print("down")
             confirm_button.pos_hint["x"] = 0.6
             confirm_button.x = window_width * 0.6
+            expand_options_button.color = (0, 0, 0, 0.3)
         else:
             print("up")
             confirm_button.pos_hint["x"] = 2
             confirm_button.x = window_width*2
+            expand_options_button.color = (0, 0, 0, 1)
 
 
 
@@ -61,11 +68,13 @@ class FoodCardsList(BoxLayout):
         app_instance = App.get_running_app()
         food_df = app_instance.load_food_data()
         self.spacing=dp(10)
+        card_padding=3
+        self.padding=dp(card_padding)
         
         # create a card for each stored food item
         for row in food_df.rows(named=True):
             card_text = row["name"]
-            card = Card(card_text)
+            card = Card(card_text, card_padding)
             self.ids["card_"+card_text] = card
             self.add_widget(card)
         
