@@ -21,7 +21,8 @@ class Card(RelativeLayout):
     def __init__(self, card_text, parent_padding, **kwargs):
         super(Card, self).__init__(**kwargs)
         self.size_hint = (None, None) 
-        self.size = (dp(400-parent_padding*2), dp(100)) 
+        windowWidth, windowHeight = Window.size
+        self.size = (dp(windowWidth/2-parent_padding*2), dp(windowHeight/6)) 
 
         card = Button(text = card_text, size_hint = (1, 1), font_size = dp(16), disabled_color = "black",
                 background_normal = "", background_color = (0.9, 0.9, 0.9, 0), disabled = True)
@@ -104,10 +105,34 @@ class MainScreenLower(RelativeLayout):
 class MainScreen(Screen):
     pass
 
-class AddFoodScreen(Screen):
+class AddFoodInputCard(RelativeLayout):
+    def __init__(self, card_label, parent_padding, **kwargs):
+        super(AddFoodInputCard, self).__init__(**kwargs)
+        windowWidth, windowHeight = Window.size
+        self.size = (dp(windowWidth/2-parent_padding*2), dp(windowHeight/6)) 
+        label = Label(text = card_label, color = "black", halign="left", valign="top", text_size=self.size, padding=(0, dp(10)))
+        self.add_widget(label)
+        text_input = TextInput(pos_hint={"x":0.025, "top":0.55}, size_hint=(0.95, 0.5))
+        self.add_widget(text_input)
+
+class AddFoodScreenForm(BoxLayout):
+    def __init__(self, **kwargs):
+        super(AddFoodScreenForm, self).__init__(**kwargs)
+        self.orientation = "vertical"
+        card_padding = dp(10)
+        name_card = AddFoodInputCard("Name:", card_padding)
+        self.add_widget(name_card)
+        servings_remaining_card = AddFoodInputCard("Servings Remaining:", card_padding)
+        self.add_widget(servings_remaining_card)
+        servings_per_day_card = AddFoodInputCard("Servings per day:", card_padding)
+        self.add_widget(servings_per_day_card)
+
+
+class AddFoodScreenSaveBack(BoxLayout):
     pass
 
-class AddFoodScreenSaveBackDiv(BoxLayout):
+
+class AddFoodScreen(Screen):
     pass
 
 
