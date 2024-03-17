@@ -139,7 +139,7 @@ class CleanTextInput(TextInput):
         # function which filters based on input type and number type
         if self.input_type == "number" and (substring.isdigit() or (substring == "." and "." not in self.text)):
             super(CleanTextInput, self).insert_text(substring, from_undo=from_undo)
-        else:
+        elif self.input_type == "text":
             super(CleanTextInput, self).insert_text(substring, from_undo=from_undo)
         
 
