@@ -60,8 +60,6 @@ class Card(RelativeLayout):
             confirm_button.x = window_width*2
             expand_options_button.color = (0, 0, 0, 1)
 
-
-
 class FoodCardsList(BoxLayout):
     def __init__(self, **kwargs):
         super(FoodCardsList, self).__init__(**kwargs)
@@ -105,14 +103,54 @@ class MainScreenLower(RelativeLayout):
 class MainScreen(Screen):
     pass
 
+class CleanTextInput(TextInput):
+    def __init__(self, input_type, **kwargs):
+        super(CleanTextInput, self).__init__(**kwargs)
+
+        # set background color
+        self.background_normal = ''
+        self.background_active = ''
+
+        # set text 
+        self.multiline = False
+        self.input_type = input_type
+
+        # set initial underline color
+        self.bind(focus=self.update_line_color)     
+        self.bind(pos=self.update)
+
+    def update(self, *args):
+        self.canvas.after.clear()
+        self.update_line_color()
+
+    def update_line_color(self, *args):
+        line_points = [self.x, self.y, self.right, self.y]
+        if self.focus:
+            with self.canvas.after:
+                Color(0, 0, 0, 1)  # Black color
+                Line(points=line_points, width=1)
+
+        else:
+            with self.canvas.after:
+                Color(0.5, 0.5, 0.5, 1)  # Grey color
+                Line(points=line_points, width=1)
+
+    def insert_text(self, substring, from_undo=False):
+        # function which filters based on input type and number type
+        if self.input_type == "number" and (substring.isdigit() or (substring == "." and "." not in self.text)):
+            super(CleanTextInput, self).insert_text(substring, from_undo=from_undo)
+        else:
+            super(CleanTextInput, self).insert_text(substring, from_undo=from_undo)
+        
+
 class AddFoodInputCard(RelativeLayout):
-    def __init__(self, card_label, parent_padding, **kwargs):
+    def __init__(self, card_label, parent_padding, input_type="text", **kwargs):
         super(AddFoodInputCard, self).__init__(**kwargs)
         windowWidth, windowHeight = Window.size
         self.size = (dp(windowWidth/2-parent_padding*2), dp(windowHeight/6)) 
-        label = Label(text = card_label, color = "black", halign="left", valign="top", text_size=self.size, padding=(0, dp(10)))
+        label = Label(text = card_label, color = "black", halign="left", valign="top", text_size=self.size, padding=(0, dp(20)))
         self.add_widget(label)
-        text_input = TextInput(pos_hint={"x":0.025, "top":0.55}, size_hint=(0.95, 0.5))
+        text_input = CleanTextInput(input_type, pos_hint={"x":0.025, "y":0.05}, size_hint=(0.95, 0.5))
         self.add_widget(text_input)
 
 class AddFoodScreenForm(BoxLayout):
@@ -122,19 +160,18 @@ class AddFoodScreenForm(BoxLayout):
         card_padding = dp(10)
         name_card = AddFoodInputCard("Name:", card_padding)
         self.add_widget(name_card)
-        servings_remaining_card = AddFoodInputCard("Servings Remaining:", card_padding)
+        servings_remaining_card = AddFoodInputCard("Servings Remaining:", card_padding, input_type="number")
         self.add_widget(servings_remaining_card)
-        servings_per_day_card = AddFoodInputCard("Servings per day:", card_padding)
+        servings_per_day_card = AddFoodInputCard("Servings per Day:", card_padding, input_type="number")
         self.add_widget(servings_per_day_card)
-
+        servings_per_purchase = AddFoodInputCard("Servings per Purchase:", card_padding, input_type="number")
+        self.add_widget(servings_per_purchase)
 
 class AddFoodScreenSaveBack(BoxLayout):
     pass
 
-
 class AddFoodScreen(Screen):
     pass
-
 
 class GroceryPalApp(App):
     def build(self):
@@ -157,8 +194,5 @@ class GroceryPalApp(App):
             print(f"Error loading data: {e}")
             return None
         
-
-    
-
 if __name__ == '__main__':
     GroceryPalApp().run()
