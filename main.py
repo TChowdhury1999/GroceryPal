@@ -161,7 +161,7 @@ class AddFoodInputCard(RelativeLayout):
 class AddFoodScreenForm(GridLayout):
     def __init__(self, **kwargs):
         super(AddFoodScreenForm, self).__init__(**kwargs)
-        self.rows = 5
+        self.rows = 6
         card_padding = dp(10)
         name_card = AddFoodInputCard("Name:", card_padding)
         self.add_widget(name_card)
@@ -169,8 +169,10 @@ class AddFoodScreenForm(GridLayout):
         self.add_widget(servings_remaining_card)
         servings_per_day_card = AddFoodInputCard("Servings per Day:", card_padding, input_type="number")
         self.add_widget(servings_per_day_card)
-        servings_per_purchase = AddFoodInputCard("Servings per Purchase:", card_padding, input_type="number")
-        self.add_widget(servings_per_purchase)
+        serving_weight = AddFoodInputCard("Serving Weight (g):", card_padding, input_type="number")
+        self.add_widget(serving_weight)
+        total_weight = AddFoodInputCard("Total Weight (g)", card_padding, input_type="number")
+        self.add_widget(total_weight)
         add_image_card = Label(text="Add Image Placeholder", color="black")
         self.add_widget(add_image_card)
 
