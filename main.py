@@ -3,6 +3,7 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 from kivy.uix.button import Button
@@ -110,12 +111,16 @@ class CleanTextInput(TextInput):
         # set background color
         self.background_normal = ''
         self.background_active = ''
+        self.background_color = (0.9, 0.9, 0.9, 0)
+
+        # set cursor color
+        self.cursor_color = "black"
 
         # set text 
         self.multiline = False
         self.input_type = input_type
 
-        # set initial underline color
+        # set initial underline color and color changing funcs
         self.bind(focus=self.update_line_color)     
         self.bind(pos=self.update)
 
@@ -132,8 +137,9 @@ class CleanTextInput(TextInput):
 
         else:
             with self.canvas.after:
-                Color(0.5, 0.5, 0.5, 1)  # Grey color
+                Color(0.7, 0.7, 0.7, 1)  # Grey color
                 Line(points=line_points, width=1)
+
 
     def insert_text(self, substring, from_undo=False):
         # function which filters based on input type and number type
@@ -142,7 +148,6 @@ class CleanTextInput(TextInput):
         elif self.input_type == "text":
             super(CleanTextInput, self).insert_text(substring, from_undo=from_undo)
         
-
 class AddFoodInputCard(RelativeLayout):
     def __init__(self, card_label, parent_padding, input_type="text", **kwargs):
         super(AddFoodInputCard, self).__init__(**kwargs)
@@ -150,13 +155,13 @@ class AddFoodInputCard(RelativeLayout):
         self.size = (dp(windowWidth/2-parent_padding*2), dp(windowHeight/6)) 
         label = Label(text = card_label, color = "black", halign="left", valign="top", text_size=self.size, padding=(0, dp(20)))
         self.add_widget(label)
-        text_input = CleanTextInput(input_type, pos_hint={"x":0.025, "y":0.05}, size_hint=(0.95, 0.5))
+        text_input = CleanTextInput(input_type, pos_hint={"x":0.025, "y":0.3}, size_hint=(0.95, 0.4))
         self.add_widget(text_input)
 
-class AddFoodScreenForm(BoxLayout):
+class AddFoodScreenForm(GridLayout):
     def __init__(self, **kwargs):
         super(AddFoodScreenForm, self).__init__(**kwargs)
-        self.orientation = "vertical"
+        self.rows = 5
         card_padding = dp(10)
         name_card = AddFoodInputCard("Name:", card_padding)
         self.add_widget(name_card)
@@ -166,9 +171,23 @@ class AddFoodScreenForm(BoxLayout):
         self.add_widget(servings_per_day_card)
         servings_per_purchase = AddFoodInputCard("Servings per Purchase:", card_padding, input_type="number")
         self.add_widget(servings_per_purchase)
+        add_image_card = Label(text="Add Image Placeholder", color="black")
+        self.add_widget(add_image_card)
 
 class AddFoodScreenSaveBack(BoxLayout):
-    pass
+    def __init__(self, **kwargs):
+        super(AddFoodScreenSaveBack, self).__init__(**kwargs)
+        # self.size_hint_y = 0.1
+        back_button = Button(text="Back")
+        back_button.bind(on_release = self.go_to_main)
+        self.add_widget(back_button)
+        save_button = Button(text="Save")
+        self.add_widget(save_button)
+
+    def go_to_main(self, instance):
+        App.get_running_app().root.transition = SlideTransition(direction="right")
+        App.get_running_app().root.current = "main_screen"
+        App.get_running_app().root.transition = SlideTransition(direction="left")
 
 class AddFoodScreen(Screen):
     pass
