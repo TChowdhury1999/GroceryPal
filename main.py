@@ -104,6 +104,36 @@ class MainScreenLower(RelativeLayout):
 class MainScreen(Screen):
     pass
 
+class AddFoodScreenTitle(GridLayout):
+    def __init__(self, **kwargs):
+        super(AddFoodScreenTitle, self).__init__(**kwargs)
+        self.cols = 2
+        self.rows = 1
+        back_button = Button(text = "<-", size_hint_x = 0.2, background_normal="", background_color = (0.9, 0.9, 0.9, 1), color="black")
+        back_button.bind(on_release = self.go_to_main)
+        self.add_widget(back_button)
+        title = Label(text="Add Food", halign="left", valign="center", size = self.size, font_size=dp(24), color="black")
+        title.bind(size=title.setter('text_size'))
+        self.add_widget(title)
+        # Set background color using canvas
+        with self.canvas.before:
+            Color(0.9, 0.9, 0.9, 1)  # Set background color (light gray)
+            self.rect = Rectangle(size=self.size, pos=self.pos)
+
+    def on_size(self, *args):
+        # Update the size of the rectangle when the layout size changes
+        self.rect.size = self.size
+
+    def on_pos(self, *args):
+        # Update the position of the rectangle when the layout position changes
+        self.rect.pos = self.pos
+
+    def go_to_main(self, instance):
+        App.get_running_app().root.transition = SlideTransition(direction="right")
+        App.get_running_app().root.current = "main_screen"
+        App.get_running_app().root.transition = SlideTransition(direction="left")
+
+
 class CleanTextInput(TextInput):
     def __init__(self, input_type, **kwargs):
         super(CleanTextInput, self).__init__(**kwargs)

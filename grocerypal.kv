@@ -41,17 +41,8 @@
 <AddFoodScreen>:
     GridLayout:
         rows: 3
-        Button:
-            halign: "left"
-            valign: "center"
-            text: "Add Food"
-            size_hint: (1, 0.2)
-            text_size: self.size
-            padding_x: "10dp"
-            font_size: "24dp"
-            color: "black"
-            background_normal:""
-            background_color:(0.9, 0.9, 0.9, 1)
+        AddFoodScreenTitle:
+            size_hint_y: 0.2
         AddFoodScreenForm:
             size_hint_y: 0.7
         AddFoodScreenSaveBack:
