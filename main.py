@@ -148,6 +148,7 @@ class CleanTextInput(TextInput):
 
         # set text 
         self.multiline = False
+        self.font_size = dp(14)
         self.input_type = input_type
 
         # set initial underline color and color changing funcs
@@ -185,7 +186,7 @@ class AddFoodInputCard(RelativeLayout):
         self.size = (dp(windowWidth/2-parent_padding*2), dp(windowHeight/6)) 
         label = Label(text = card_label, color = "black", halign="left", valign="top", text_size=self.size, padding=(0, dp(20)))
         self.add_widget(label)
-        text_input = CleanTextInput(input_type, pos_hint={"x":0.025, "y":0.3}, size_hint=(0.95, 0.4))
+        text_input = CleanTextInput(input_type, pos_hint={"x":0.025, "y":0.3}, size_hint=(0.95, 0.45))
         self.add_widget(text_input)
 
 class AddFoodScreenForm(GridLayout):
@@ -214,12 +215,31 @@ class AddFoodScreenSaveBack(BoxLayout):
         back_button.bind(on_release = self.go_to_main)
         self.add_widget(back_button)
         save_button = Button(text="Save")
+        save_button.bind(on_release = self.save_food)
         self.add_widget(save_button)
 
     def go_to_main(self, instance):
         App.get_running_app().root.transition = SlideTransition(direction="right")
         App.get_running_app().root.current = "main_screen"
         App.get_running_app().root.transition = SlideTransition(direction="left")
+    
+    def save_food(self, *args):
+        print("save")
+        form = [i for i in self.parent.children if type(i).__name__ == "AddFoodScreenForm"][0]
+        text_inputs = [i.children[0] for i in form.children if type(i).__name__ == "AddFoodInputCard"]
+        form_dict = {}
+        for i, form_input in enumerate(["total_weight", "serving_weight", "servings_per_day", 
+                           "servings", "name"]):
+            try:
+                form_value = float(text_inputs[i].text)
+            except ValueError:
+                form_value = text_inputs[i].text
+            form_dict[form_input] = form_value
+        food_data = pl.read_csv("data/food_data.csv")
+        form_data = pl.DataFrame(form_dict)
+        reversed_column_names = form_data.columns[::-1]
+        new_food_data = pl.concat([food_data, form_data.select(reversed_column_names)])
+        new_food_data.write_csv("data/food_data.csv")
 
 class AddFoodScreen(Screen):
     pass

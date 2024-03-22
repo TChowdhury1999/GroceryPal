@@ -1,4 +1,5 @@
-name, portions, portions_per_day
-chicken breast, 4, 2
-pepsi, 16, 1
-gravy, 10, 2
+name,servings,servings_per_day,serving_weight,total_weight
+chicken breast,4.0,2.0,144.0,2000.0
+pepsi,16.0,1.0,333.0,10000.0
+gravy,10.0,2.0,5.0,500.0
+brocolli,3.0,2.0,140.0,950.0
