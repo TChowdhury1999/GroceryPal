@@ -19,11 +19,11 @@ from kivy.clock import Clock
 
 
 class Card(RelativeLayout):
-    def __init__(self, card_text, parent_padding, **kwargs):
+    def __init__(self, card_text, parent_padding, width_adjustment, **kwargs):
         super(Card, self).__init__(**kwargs)
         self.size_hint = (None, None) 
         windowWidth, windowHeight = Window.size
-        self.size = (dp(windowWidth/2-parent_padding*2), dp(windowHeight/6)) 
+        self.size = (dp(windowWidth/width_adjustment-parent_padding*2), dp(windowHeight/6)) 
 
         card = Button(text = card_text, size_hint = (1, 1), font_size = dp(16), disabled_color = "black",
                 background_normal = "", background_color = (0.9, 0.9, 0.9, 0), disabled = True)
@@ -62,19 +62,21 @@ class Card(RelativeLayout):
             expand_options_button.color = (0, 0, 0, 1)
 
 class FoodCardsList(BoxLayout):
-    def __init__(self, **kwargs):
+    def __init__(self, reset = False, **kwargs):
         super(FoodCardsList, self).__init__(**kwargs)
+        self.clear_widgets()
         # load in food data
         app_instance = App.get_running_app()
         food_df = app_instance.load_food_data()
-        self.spacing=dp(10)
+        self.spacing=dp(10) 
         card_padding=3
         self.padding=dp(card_padding)
-        
+    
         # create a card for each stored food item
+        width_adjustment = 1 if reset else 2
         for row in food_df.rows(named=True):
             card_text = row["name"]
-            card = Card(card_text, card_padding)
+            card = Card(card_text, card_padding, width_adjustment)
             self.ids["card_"+card_text] = card
             self.add_widget(card)
         
@@ -132,7 +134,6 @@ class AddFoodScreenTitle(GridLayout):
         App.get_running_app().root.transition = SlideTransition(direction="right")
         App.get_running_app().root.current = "main_screen"
         App.get_running_app().root.transition = SlideTransition(direction="left")
-
 
 class CleanTextInput(TextInput):
     def __init__(self, input_type, **kwargs):
@@ -224,10 +225,12 @@ class AddFoodScreenSaveBack(BoxLayout):
         App.get_running_app().root.transition = SlideTransition(direction="left")
     
     def save_food(self, *args):
-        print("save")
+        # get data from form
         form = [i for i in self.parent.children if type(i).__name__ == "AddFoodScreenForm"][0]
         text_inputs = [i.children[0] for i in form.children if type(i).__name__ == "AddFoodInputCard"]
         form_dict = {}
+
+        # put form data into a dictionary
         for i, form_input in enumerate(["total_weight", "serving_weight", "servings_per_day", 
                            "servings", "name"]):
             try:
@@ -235,11 +238,37 @@ class AddFoodScreenSaveBack(BoxLayout):
             except ValueError:
                 form_value = text_inputs[i].text
             form_dict[form_input] = form_value
+
+        # read in current data and append 
         food_data = pl.read_csv("data/food_data.csv")
         form_data = pl.DataFrame(form_dict)
+
+        # do some input checks
+        if len(form_dict["name"]) == 0:
+            print("Name needed")
+            return
+        elif form_dict["name"] in form_data["name"]:
+            print("Already in list")
+            return
+        elif len(form_dict["servings_per_day"]) == 0:
+            print("Need a servings per day")
+            return
+        elif len(form_dict["serving_weight"])==0:
+            print("Need a serving weight")
+            return
+        elif len(form_dict["total_weight"]) == 0:
+            print("Need a total weight")
+            return
+        
+        # append data
         reversed_column_names = form_data.columns[::-1]
         new_food_data = pl.concat([food_data, form_data.select(reversed_column_names)])
         new_food_data.write_csv("data/food_data.csv")
+
+        # update the food card list in main page
+        main_screen_lower = [i for i in App.get_running_app().root.get_screen("main_screen").children[0].children if type(i).__name__ == "MainScreenLower"][0]
+        food_card_list = [i for i in main_screen_lower.children if type(i).__name__ == "MainScreenLowerScroll"][0].children[0]
+        food_card_list.__init__(reset = True)
 
 class AddFoodScreen(Screen):
     pass
