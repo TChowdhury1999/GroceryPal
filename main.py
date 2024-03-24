@@ -14,18 +14,19 @@ from kivy.core.window import Window
 from kivy.config import Config
 from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
-from kivy.graphics import Color, Rectangle, RoundedRectangle, Line
+from kivy.graphics import Color, Rectangle, RoundedRectangle, Line, Ellipse
 from kivy.clock import Clock
 
 
 class Card(RelativeLayout):
-    def __init__(self, card_text, parent_padding, width_adjustment, **kwargs):
+    def __init__(self, row, parent_padding, width_adjustment, **kwargs):
         super(Card, self).__init__(**kwargs)
         self.size_hint = (None, None) 
         windowWidth, windowHeight = Window.size
-        self.size = (dp(windowWidth/width_adjustment-parent_padding*2), dp(windowHeight/6)) 
+        self.size = (dp(windowWidth/width_adjustment-parent_padding*2), dp(windowHeight/5)) 
 
-        card = Button(text = card_text, size_hint = (1, 1), font_size = dp(16), disabled_color = "black",
+        # actual card
+        card = Button(text = "", size_hint = (1, 1), font_size = dp(16), disabled_color = "black",
                 background_normal = "", background_color = (0.9, 0.9, 0.9, 0), disabled = True)
         with card.canvas.before:
             Color(0.7, 0.7, 0.7, 1)
@@ -33,6 +34,34 @@ class Card(RelativeLayout):
             Color(0.8, 0.8, 0.8, 1)
             RoundedRectangle(pos=(card.pos[0]+5, card.pos[1]+5), size=(self.size[0]-10, self.size[1]-10),  radius=[10, 10, 10, 10])
         self.add_widget(card)
+
+        # image circle
+        with self.canvas:
+            Color(0, 0, 1, 0.4)
+            ellipse_size = self.width * 0.12
+            ellipse_pos = (self.width * 0.035, self.height * 0.5)
+            Ellipse(pos = ellipse_pos, size = (ellipse_size, ellipse_size))
+
+        # card main title
+        main_title_pos = (self.width * 0.18, self.height * 0.67)
+        main_title = Label(text=row["name"].title(), size_hint = (1, 1), text_size = self.size, font_size = dp(24),
+                           pos=main_title_pos, color="black")
+        self.add_widget(main_title)
+
+        # portion remaining labels
+        portion_label_size = (self.width * 0.135, self.height * 0.5)
+        portion_label_pos = (self.width * 0.18, self.height * 0.5)
+        portion_label = Label(text = str(int(row["servings"])) + " Servings", text_size = self.size, font_size = dp(20),
+                              pos = portion_label_pos, color="black")
+        self.add_widget(portion_label)
+
+        # days remaining labels
+        days_label_pos = (self.width * 0.45, self.height * 0.5)
+        days = row["servings"] / row["servings_per_day"]
+        days_str = str(int(days)) if days % 1 == 0 else "{:.1f}".format(days)
+        days_label = Label(text = "| "+days_str + " Days", text_size = self.size, font_size = dp(20),
+                              pos = days_label_pos, color="black")
+        self.add_widget(days_label)
 
         expand_options_button = ToggleButton(text="•••",  size_hint=(0.05, 0.15), font_size = dp(18), pos_hint={"x":0.93, "y":0.77}, color="black",
                                        background_normal = "", background_color = (0.9, 0.9, 0.9, 0))
@@ -75,9 +104,8 @@ class FoodCardsList(BoxLayout):
         # create a card for each stored food item
         width_adjustment = 1 if reset else 2
         for row in food_df.rows(named=True):
-            card_text = row["name"]
-            card = Card(card_text, card_padding, width_adjustment)
-            self.ids["card_"+card_text] = card
+            card = Card(row, card_padding, width_adjustment)
+            self.ids["card_"+row["name"]] = card
             self.add_widget(card)
         
         # Create a blank label for space
