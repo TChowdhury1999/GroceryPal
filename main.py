@@ -15,6 +15,7 @@ from kivy.config import Config
 from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, Rectangle, RoundedRectangle, Line, Ellipse
+from kivy.uix.progressbar import ProgressBar
 from kivy.clock import Clock
 
 
@@ -49,19 +50,35 @@ class Card(RelativeLayout):
         self.add_widget(main_title)
 
         # portion remaining labels
-        portion_label_size = (self.width * 0.135, self.height * 0.5)
         portion_label_pos = (self.width * 0.18, self.height * 0.5)
-        portion_label = Label(text = str(int(row["servings"])) + " Servings", text_size = self.size, font_size = dp(20),
+        servings = row["servings"]
+        portion_label = Label(text = str(int(servings)) + " Servings", text_size = self.size, font_size = dp(20),
                               pos = portion_label_pos, color="black")
         self.add_widget(portion_label)
 
         # days remaining labels
         days_label_pos = (self.width * 0.45, self.height * 0.5)
-        days = row["servings"] / row["servings_per_day"]
+        servings_per_day = row["servings_per_day"]
+        days = servings / servings_per_day
         days_str = str(int(days)) if days % 1 == 0 else "{:.1f}".format(days)
         days_label = Label(text = "| "+days_str + " Days", text_size = self.size, font_size = dp(20),
                               pos = days_label_pos, color="black")
         self.add_widget(days_label)
+
+        # days bar
+        total_weight, serving_weight = row["total_weight"], row["serving_weight"]
+        max_days = (total_weight / serving_weight) / servings_per_day
+        day_bar_size = (self.width * 0.9, self.height*0.05)
+        day_bar_pos = (self.width * 0.05, self.height * 0.35)
+        day_bar = ProgressBar(max = max_days, value = days, size_hint=(None, None), size=day_bar_size, pos=day_bar_pos)
+        self.add_widget(day_bar)
+
+        # control bar
+        control_bar = GridLayout(cols=6, size_hint=(0.9, 0.25), pos_hint={"x":0.05, "y":0.08})
+        for i in range(6):
+            control_bar.add_widget(Button(text=str(i)))
+        self.add_widget(control_bar)
+
 
         expand_options_button = ToggleButton(text="•••",  size_hint=(0.05, 0.15), font_size = dp(18), pos_hint={"x":0.93, "y":0.77}, color="black",
                                        background_normal = "", background_color = (0.9, 0.9, 0.9, 0))
