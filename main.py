@@ -74,9 +74,7 @@ class Card(RelativeLayout):
         # days bar
         total_weight, serving_weight = row["total_weight"], row["serving_weight"]
         max_days = (total_weight / serving_weight) / servings_per_day
-        day_bar_size = (self.width * 0.9, self.height*0.05)
-        day_bar_pos = (self.width * 0.05, self.height * 0.35)
-        day_bar = ProgressBar(max = max_days, value = days, size_hint=(None, None), size=day_bar_size, pos=day_bar_pos)
+        day_bar = ProgressBar(max = max_days, value = days, size_hint=(0.9, 0.05), pos_hint={"x":0.05, "y":0.35})
         self.add_widget(day_bar)
 
         # control bar
@@ -98,14 +96,15 @@ class Card(RelativeLayout):
         self.add_widget(confirm_remove_button)
     
     def on_size(self, *args, **kwargs):
-        print("Resize")
         self.update_size()
 
     def update_size(self): 
         window_width, window_height = Window.size
         self.size_hint = (None, None) 
+        # check why this doesnt adjust with window size
+        print(self.size)
         self.size = (dp(window_width / self.width_adjustment - self.parent_padding * 2), dp(window_height / 5))
-        print("pos is ", self.pos)
+        print(dp(window_width / self.width_adjustment - self.parent_padding * 2))
         self.rect_outer.pos = (0, 0) #(self.x, self.y)
         self.rect_outer.size = self.size
         self.rect_inner.pos = (5, 5)
@@ -340,8 +339,8 @@ class AddFoodScreen(Screen):
 
 class GroceryPalApp(App):
     def build(self):
-        # set window size
-        Window.size = (400, 600)
+        # set window size 9:20 ratio
+        Window.size = (360, 800)
         # set window color
         Window.clearcolor = (0.95, 0.95, 0.95, 1)
         # Create the screen manager
