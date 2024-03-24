@@ -22,18 +22,24 @@ from kivy.clock import Clock
 class Card(RelativeLayout):
     def __init__(self, row, parent_padding, width_adjustment, **kwargs):
         super(Card, self).__init__(**kwargs)
+        self.parent_padding = parent_padding
+        self.width_adjustment = width_adjustment
         self.size_hint = (None, None) 
-        windowWidth, windowHeight = Window.size
-        self.size = (dp(windowWidth/width_adjustment-parent_padding*2), dp(windowHeight/5)) 
+        self.rect_outer = RoundedRectangle()
+        self.rect_inner = RoundedRectangle()
+
+        Window.bind(on_resize=self.on_size)
+        self.update_size()
+        self.width_adjustment = 1
 
         # actual card
         card = Button(text = "", size_hint = (1, 1), font_size = dp(16), disabled_color = "black",
                 background_normal = "", background_color = (0.9, 0.9, 0.9, 0), disabled = True)
         with card.canvas.before:
             Color(0.7, 0.7, 0.7, 1)
-            RoundedRectangle(pos=card.pos, size=self.size, radius=[10, 10, 10, 10])
+            self.rect_outer = RoundedRectangle(pos=card.pos, size=self.size, radius=[10, 10, 10, 10])
             Color(0.8, 0.8, 0.8, 1)
-            RoundedRectangle(pos=(card.pos[0]+5, card.pos[1]+5), size=(self.size[0]-10, self.size[1]-10),  radius=[10, 10, 10, 10])
+            self.rect_inner = RoundedRectangle(pos=(card.pos[0]+5, card.pos[1]+5), size=(self.size[0]-10, self.size[1]-10),  radius=[10, 10, 10, 10])
         self.add_widget(card)
 
         # image circle
@@ -91,6 +97,20 @@ class Card(RelativeLayout):
         self.ids["confirm_remove"] = confirm_remove_button
         self.add_widget(confirm_remove_button)
     
+    def on_size(self, *args, **kwargs):
+        print("Resize")
+        self.update_size()
+
+    def update_size(self): 
+        window_width, window_height = Window.size
+        self.size_hint = (None, None) 
+        self.size = (dp(window_width / self.width_adjustment - self.parent_padding * 2), dp(window_height / 5))
+        print("pos is ", self.pos)
+        self.rect_outer.pos = (0, 0) #(self.x, self.y)
+        self.rect_outer.size = self.size
+        self.rect_inner.pos = (5, 5)
+        self.rect_inner.size = (self.width - 10, self.height - 10)
+
     def update_confirm_remove_position(self, instance):
         print(self.ids)
         confirm_button = self.ids.confirm_remove
