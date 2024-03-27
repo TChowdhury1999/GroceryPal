@@ -20,17 +20,15 @@ from kivy.clock import Clock
 
 
 class Card(RelativeLayout):
-    def __init__(self, row, parent_padding, width_adjustment, **kwargs):
+    def __init__(self, row, parent_padding, **kwargs):
         super(Card, self).__init__(**kwargs)
         self.parent_padding = parent_padding
-        self.width_adjustment = width_adjustment
         self.size_hint = (None, None) 
         self.rect_outer = RoundedRectangle()
         self.rect_inner = RoundedRectangle()
 
         Window.bind(on_resize=self.on_size)
-        self.update_size()
-        self.width_adjustment = 1
+        Clock.schedule_once(self.update_size)
 
         # actual card
         card = Button(text = "", size_hint = (1, 1), font_size = dp(16), disabled_color = "black",
@@ -98,13 +96,11 @@ class Card(RelativeLayout):
     def on_size(self, *args, **kwargs):
         self.update_size()
 
-    def update_size(self): 
+    def update_size(self, *args, **kwargs): 
         window_width, window_height = Window.size
         self.size_hint = (None, None) 
         # check why this doesnt adjust with window size
-        print(self.size)
-        self.size = (dp(window_width / self.width_adjustment - self.parent_padding * 2), dp(window_height / 5))
-        print(dp(window_width / self.width_adjustment - self.parent_padding * 2))
+        self.size = (dp(window_width - self.parent_padding * 2), dp(window_height / 5))
         self.rect_outer.pos = (0, 0) #(self.x, self.y)
         self.rect_outer.size = self.size
         self.rect_inner.pos = (5, 5)
@@ -126,22 +122,26 @@ class Card(RelativeLayout):
             confirm_button.x = window_width*2
             expand_options_button.color = (0, 0, 0, 1)
 
-class FoodCardsList(BoxLayout):
+class FoodCardsList(GridLayout):
     def __init__(self, reset = False, **kwargs):
         super(FoodCardsList, self).__init__(**kwargs)
-        self.clear_widgets()
+        # self.clear_widgets()
         # load in food data
         app_instance = App.get_running_app()
         food_df = app_instance.load_food_data()
+
+        self.cols = 1
+        self.rows = len(food_df)+1
+
         self.spacing=dp(10) 
         card_padding=3
         self.padding=dp(card_padding)
     
         # create a card for each stored food item
-        width_adjustment = 1 if reset else 2
         for row in food_df.rows(named=True):
-            card = Card(row, card_padding, width_adjustment)
+            card = Card(row, card_padding)
             self.ids["card_"+row["name"]] = card
+            card.update_size()
             self.add_widget(card)
         
         # Create a blank label for space
@@ -347,6 +347,8 @@ class GroceryPalApp(App):
         sm = ScreenManager()
         sm.add_widget(MainScreen(name='main_screen'))
         sm.add_widget(AddFoodScreen(name="add_food_screen"))
+
+
         return sm
     
     def load_food_data(self):
@@ -357,6 +359,7 @@ class GroceryPalApp(App):
         except Exception as e:
             print(f"Error loading data: {e}")
             return None
+        
         
 if __name__ == '__main__':
     GroceryPalApp().run()
