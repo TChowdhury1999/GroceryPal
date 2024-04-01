@@ -18,6 +18,31 @@ from kivy.graphics import Color, Rectangle, RoundedRectangle, Line, Ellipse
 from kivy.uix.progressbar import ProgressBar
 from kivy.clock import Clock
 
+class ControlBar(GridLayout):
+    def __init__(self, **kwargs):
+        super(ControlBar, self).__init__(**kwargs)
+
+        self.cols = 6
+        self.size_hint = (0.9, 0.25)
+        self.pos_hint = {"x":0.05, "y":0.08}
+
+        auto_button = Button(text="Auto")
+        self.add_widget(auto_button)
+
+        increase_button = Button(text="+1")
+        self.add_widget(increase_button)
+
+        decrease_button = Button(text="-1")
+        self.add_widget(decrease_button)
+
+        refill_button = Button(text="refill")
+        self.add_widget(refill_button)
+
+        pause_button = ToggleButton(text="||")
+        self.add_widget(pause_button)
+
+        undo_button = Button(text="<-")
+        self.add_widget(undo_button)
 
 class Card(RelativeLayout):
     def __init__(self, row, parent_padding, **kwargs):
@@ -67,13 +92,11 @@ class Card(RelativeLayout):
         self.add_widget(day_bar)
 
         # control bar
-        control_bar = GridLayout(cols=6, size_hint=(0.9, 0.25), pos_hint={"x":0.05, "y":0.08})
-        for i in range(6):
-            control_bar.add_widget(Button(text=str(i)))
+        control_bar = ControlBar()
         self.add_widget(control_bar)
 
 
-        expand_options_button = ToggleButton(text="•••",  size_hint=(0.05, 0.15), font_size = dp(18), pos_hint={"x":0.93, "y":0.77}, color="black",
+        expand_options_button = ToggleButton(text="•••",  size_hint=(0.05, 0.15), font_size = dp(18), pos_hint={"x":0.9, "y":0.77}, color="black",
                                        background_normal = "", background_color = (0.9, 0.9, 0.9, 0))
         self.ids["expand_options"] = expand_options_button
         expand_options_button.bind(on_release=self.update_confirm_remove_position)
@@ -111,7 +134,6 @@ class Card(RelativeLayout):
         self.ids.portion_label.text_size = (self.width, self.height)
         self.ids.portion_label.size = self.ids.portion_label.text_size
         self.ids.portion_label.pos = (self.image_circle.pos[0] + self.image_circle.size[0] + 0.025*self.width, 0.55*self.height)
-
 
 
     def update_confirm_remove_position(self, instance):
