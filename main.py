@@ -35,39 +35,30 @@ class Card(RelativeLayout):
                 background_normal = "", background_color = (0.9, 0.9, 0.9, 0), disabled = True)
         with card.canvas.before:
             Color(0.7, 0.7, 0.7, 1)
-            self.rect_outer = RoundedRectangle(pos=card.pos, size=self.size, radius=[10, 10, 10, 10])
+            self.rect_outer = RoundedRectangle(radius=[10, 10, 10, 10])
             Color(0.8, 0.8, 0.8, 1)
-            self.rect_inner = RoundedRectangle(pos=(card.pos[0]+5, card.pos[1]+5), size=(self.size[0]-10, self.size[1]-10),  radius=[10, 10, 10, 10])
+            self.rect_inner = RoundedRectangle(radius=[10, 10, 10, 10])
         self.add_widget(card)
 
         # image circle
         with self.canvas:
             Color(0, 0, 1, 0.4)
-            ellipse_size = self.width * 0.12
-            ellipse_pos = (self.width * 0.035, self.height * 0.5)
-            Ellipse(pos = ellipse_pos, size = (ellipse_size, ellipse_size))
+            self.image_circle = Ellipse()
 
         # card main title
-        main_title_pos = (self.width * 0.18, self.height * 0.67)
-        main_title = Label(text=row["name"].title(), size_hint = (1, 1), text_size = self.size, font_size = dp(24),
-                           pos=main_title_pos, color="black")
+        main_title = Label(text=row["name"].title(), size_hint = (None, None), text_size = self.size, font_size = dp(24),
+                           color="black")
+        self.ids.main_title = main_title
         self.add_widget(main_title)
 
         # portion remaining labels
-        portion_label_pos = (self.width * 0.18, self.height * 0.5)
         servings = row["servings"]
-        portion_label = Label(text = str(int(servings)) + " Servings", text_size = self.size, font_size = dp(20),
-                              pos = portion_label_pos, color="black")
-        self.add_widget(portion_label)
-
-        # days remaining labels
-        days_label_pos = (self.width * 0.45, self.height * 0.5)
         servings_per_day = row["servings_per_day"]
         days = servings / servings_per_day
         days_str = str(int(days)) if days % 1 == 0 else "{:.1f}".format(days)
-        days_label = Label(text = "| "+days_str + " Days", text_size = self.size, font_size = dp(20),
-                              pos = days_label_pos, color="black")
-        self.add_widget(days_label)
+        portion_label = Label(text = str(int(servings)) + " Servings | " + days_str + " Days", text_size = self.size, font_size = dp(20), color="black")
+        self.ids.portion_label = portion_label
+        self.add_widget(portion_label)
 
         # days bar
         total_weight, serving_weight = row["total_weight"], row["serving_weight"]
@@ -99,15 +90,31 @@ class Card(RelativeLayout):
     def update_size(self, *args, **kwargs): 
         window_width, window_height = Window.size
         self.size_hint = (None, None) 
-        # check why this doesnt adjust with window size
-        self.size = (dp(window_width - self.parent_padding * 2), dp(window_height / 5))
-        self.rect_outer.pos = (0, 0) #(self.x, self.y)
+        self.size = (dp(window_width - (self.parent_padding * 2)), dp(window_height / 5))
+
+        # set card rectangle
+        self.rect_outer.pos = (0, 0) 
         self.rect_outer.size = self.size
-        self.rect_inner.pos = (5, 5)
-        self.rect_inner.size = (self.width - 10, self.height - 10)
+        self.rect_inner.pos = ((1-0.95)/2*self.width, (1-0.93)/2*self.height)
+        self.rect_inner.size = (0.95*self.width, 0.93*self.height)
+
+        # set image circle 
+        self.image_circle.pos = (0.05 * self.width, 0.45 * self.height)
+        self.image_circle.size = (0.2 * self.width, 0.2 * (9/4) * self.height)
+
+        # set card main title
+        self.ids.main_title.text_size = (self.width, self.height)
+        self.ids.main_title.size = self.ids.main_title.text_size
+        self.ids.main_title.pos = (self.image_circle.pos[0] + self.image_circle.size[0] + 0.025*self.width, 0.7*self.height)
+
+        # set portion remaining label
+        self.ids.portion_label.text_size = (self.width, self.height)
+        self.ids.portion_label.size = self.ids.portion_label.text_size
+        self.ids.portion_label.pos = (self.image_circle.pos[0] + self.image_circle.size[0] + 0.025*self.width, 0.55*self.height)
+
+
 
     def update_confirm_remove_position(self, instance):
-        print(self.ids)
         confirm_button = self.ids.confirm_remove
         expand_options_button = self.ids.expand_options
         window_width, _ = Window.size
@@ -125,7 +132,6 @@ class Card(RelativeLayout):
 class FoodCardsList(GridLayout):
     def __init__(self, reset = False, **kwargs):
         super(FoodCardsList, self).__init__(**kwargs)
-        # self.clear_widgets()
         # load in food data
         app_instance = App.get_running_app()
         food_df = app_instance.load_food_data()
@@ -340,7 +346,10 @@ class AddFoodScreen(Screen):
 class GroceryPalApp(App):
     def build(self):
         # set window size 9:20 ratio
-        Window.size = (360, 800)
+        # Window.size = (360, 800)
+        Window.size = (450, 1000)
+        # Window.size = (495, 1100)
+        # Window.size = (540, 1200)
         # set window color
         Window.clearcolor = (0.95, 0.95, 0.95, 1)
         # Create the screen manager
