@@ -19,23 +19,27 @@ from kivy.uix.progressbar import ProgressBar
 from kivy.clock import Clock
 
 class ControlBar(GridLayout):
-    def __init__(self, **kwargs):
+    def __init__(self, food_name, **kwargs):
         super(ControlBar, self).__init__(**kwargs)
 
         self.cols = 6
         self.size_hint = (0.9, 0.25)
         self.pos_hint = {"x":0.05, "y":0.08}
+        self.food_name = food_name
 
         auto_button = Button(text="Auto")
         self.add_widget(auto_button)
 
         increase_button = Button(text="+1")
+        increase_button.bind(on_release = self.on_increase)
         self.add_widget(increase_button)
 
         decrease_button = Button(text="-1")
+        decrease_button.bind(on_release = self.on_decrease)
         self.add_widget(decrease_button)
 
         refill_button = Button(text="refill")
+        refill_button.bind(on_release = self.on_refill)
         self.add_widget(refill_button)
 
         pause_button = ToggleButton(text="||")
@@ -44,6 +48,31 @@ class ControlBar(GridLayout):
         undo_button = Button(text="<-")
         self.add_widget(undo_button)
 
+    def on_increase(self, *args):
+        self.change_portions(1)
+
+    def on_decrease(self, *args):
+        self.change_portions(-1)
+
+    def on_refill(self, *args):
+        delta = self.parent.total_weight / self.parent.serving_weight
+        delta = int(delta)
+        self.change_portions(delta)
+
+    def change_portions(self, delta):
+        app_instance = App.get_running_app()
+        food_df = app_instance.load_food_data()
+        food_df = food_df.with_columns(
+            pl.when(pl.col("name") == self.food_name)
+            .then(pl.col("servings") + delta)
+            .otherwise(pl.col("servings"))
+            .alias("servings")
+        )
+        food_df.write_csv("data/food_data.csv")
+        self.parent.update_portions()
+
+
+
 class Card(RelativeLayout):
     def __init__(self, row, parent_padding, **kwargs):
         super(Card, self).__init__(**kwargs)
@@ -51,6 +80,9 @@ class Card(RelativeLayout):
         self.size_hint = (None, None) 
         self.rect_outer = RoundedRectangle()
         self.rect_inner = RoundedRectangle()
+        self.food_name = row["name"]
+        self.serving_weight = row["serving_weight"]
+        self.total_weight = row["total_weight"]
 
         Window.bind(on_resize=self.on_size)
         Clock.schedule_once(self.update_size)
@@ -71,7 +103,7 @@ class Card(RelativeLayout):
             self.image_circle = Ellipse()
 
         # card main title
-        main_title = Label(text=row["name"].title(), size_hint = (None, None), text_size = self.size, font_size = dp(24),
+        main_title = Label(text=self.food_name.title(), size_hint = (None, None), text_size = self.size, font_size = dp(24),
                            color="black")
         self.ids.main_title = main_title
         self.add_widget(main_title)
@@ -80,7 +112,7 @@ class Card(RelativeLayout):
         servings = row["servings"]
         servings_per_day = row["servings_per_day"]
         days = servings / servings_per_day
-        days_str = str(int(days)) if days % 1 == 0 else "{:.1f}".format(days)
+        days_str = str(int(round(days * 2) / 2) if round(days * 2) % 2 == 0 else round(days * 2) / 2)
         portion_label = Label(text = str(int(servings)) + " Servings | " + days_str + " Days", text_size = self.size, font_size = dp(20), color="black")
         self.ids.portion_label = portion_label
         self.add_widget(portion_label)
@@ -89,10 +121,11 @@ class Card(RelativeLayout):
         total_weight, serving_weight = row["total_weight"], row["serving_weight"]
         max_days = (total_weight / serving_weight) / servings_per_day
         day_bar = ProgressBar(max = max_days, value = days, size_hint=(0.9, 0.05), pos_hint={"x":0.05, "y":0.35})
+        self.ids.day_bar = day_bar
         self.add_widget(day_bar)
 
         # control bar
-        control_bar = ControlBar()
+        control_bar = ControlBar(row["name"])
         self.add_widget(control_bar)
 
 
@@ -134,6 +167,19 @@ class Card(RelativeLayout):
         self.ids.portion_label.text_size = (self.width, self.height)
         self.ids.portion_label.size = self.ids.portion_label.text_size
         self.ids.portion_label.pos = (self.image_circle.pos[0] + self.image_circle.size[0] + 0.025*self.width, 0.55*self.height)
+
+    def update_portions(self):
+        app_instance = App.get_running_app()
+        food_df = app_instance.load_food_data()
+        filtered_df = food_df.filter(pl.col("name")==self.food_name)
+        servings = filtered_df["servings"][0]
+        servings_per_day = filtered_df["servings_per_day"][0]
+
+        # update servings
+        days = servings / servings_per_day
+        days_str = str(int(round(days * 2) / 2) if round(days * 2) % 2 == 0 else round(days * 2) / 2)
+        self.ids.portion_label.text = str(int(servings)) + " Servings | " + days_str + " Days"
+        self.ids.day_bar.value = days
 
 
     def update_confirm_remove_position(self, instance):
