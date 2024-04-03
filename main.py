@@ -90,9 +90,6 @@ class ControlBar(GridLayout):
         )
         food_df.write_csv("data/food_data.csv")
 
-
-
-
 class Card(RelativeLayout):
     def __init__(self, row, parent_padding, **kwargs):
         super(Card, self).__init__(**kwargs)
@@ -306,7 +303,7 @@ class CleanTextInput(TextInput):
 
         # set text 
         self.multiline = False
-        self.font_size = dp(14)
+        self.font_size = self.width/8
         self.input_type = input_type
 
         # set initial underline color and color changing funcs
@@ -342,9 +339,10 @@ class AddFoodInputCard(RelativeLayout):
         super(AddFoodInputCard, self).__init__(**kwargs)
         windowWidth, windowHeight = Window.size
         self.size = (dp(windowWidth/2-parent_padding*2), dp(windowHeight/6)) 
-        label = Label(text = card_label, color = "black", halign="left", valign="top", text_size=self.size, padding=(0, dp(20)))
+        label = Label(text = card_label, color = "black", halign="left", valign="top", text_size=self.size,
+                      font_size=self.width/20, padding=(0, dp(20)), pos_hint={"x":0.05, "y":0})
         self.add_widget(label)
-        text_input = CleanTextInput(input_type, pos_hint={"x":0.025, "y":0.3}, size_hint=(0.95, 0.45))
+        text_input = CleanTextInput(input_type, pos_hint={"x":0.025, "y":0.25}, size_hint=(0.95, 0.32))
         self.add_widget(text_input)
 
 class AddFoodScreenForm(GridLayout):
@@ -436,8 +434,8 @@ class AddFoodScreen(Screen):
 class GroceryPalApp(App):
     def build(self):
         # set window size 9:20 ratio
-        # Window.size = (360, 800)
-        Window.size = (450, 1000)
+        Window.size = (360, 800)
+        # Window.size = (450, 1000)
         # Window.size = (495, 1100)
         # Window.size = (540, 1200)
         # set window color
