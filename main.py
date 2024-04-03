@@ -19,16 +19,20 @@ from kivy.uix.progressbar import ProgressBar
 from kivy.clock import Clock
 
 class ControlBar(GridLayout):
-    def __init__(self, food_name, **kwargs):
+    def __init__(self, food_name, is_paused, **kwargs):
         super(ControlBar, self).__init__(**kwargs)
 
-        self.cols = 6
+        self.cols = 5
         self.size_hint = (0.9, 0.25)
         self.pos_hint = {"x":0.05, "y":0.08}
         self.food_name = food_name
 
-        auto_button = Button(text="Auto")
-        self.add_widget(auto_button)
+        initial_state = 'down' if is_paused else 'normal'
+        initial_text = "||" if is_paused else "|>"
+        pause_button = ToggleButton(text=initial_text, state=initial_state)
+        self.ids.pause_button = pause_button
+        pause_button.bind(on_release = self.on_pause)
+        self.add_widget(pause_button)
 
         increase_button = Button(text="+1")
         increase_button.bind(on_release = self.on_increase)
@@ -41,9 +45,6 @@ class ControlBar(GridLayout):
         refill_button = Button(text="refill")
         refill_button.bind(on_release = self.on_refill)
         self.add_widget(refill_button)
-
-        pause_button = ToggleButton(text="||")
-        self.add_widget(pause_button)
 
         undo_button = Button(text="<-")
         self.add_widget(undo_button)
@@ -71,6 +72,25 @@ class ControlBar(GridLayout):
         food_df.write_csv("data/food_data.csv")
         self.parent.update_portions()
 
+    def on_pause(self, *args):
+        pause_button = self.ids.pause_button
+        app_instance = App.get_running_app()
+        food_df = app_instance.load_food_data()
+        if pause_button.state == "down":
+            pause_button.text = "||"
+            state = True
+        else:
+            pause_button.text = "|>"
+            state = False
+        food_df = food_df.with_columns(
+            pl.when(pl.col("name") == self.food_name)
+            .then(pl.lit(state))
+            .otherwise(pl.col("paused"))
+            .alias("paused")
+        )
+        food_df.write_csv("data/food_data.csv")
+
+
 
 
 class Card(RelativeLayout):
@@ -83,6 +103,7 @@ class Card(RelativeLayout):
         self.food_name = row["name"]
         self.serving_weight = row["serving_weight"]
         self.total_weight = row["total_weight"]
+        self.is_paused = row["paused"]
 
         Window.bind(on_resize=self.on_size)
         Clock.schedule_once(self.update_size)
@@ -125,7 +146,7 @@ class Card(RelativeLayout):
         self.add_widget(day_bar)
 
         # control bar
-        control_bar = ControlBar(row["name"])
+        control_bar = ControlBar(row["name"], self.is_paused)
         self.add_widget(control_bar)
 
 
@@ -143,7 +164,7 @@ class Card(RelativeLayout):
     def on_size(self, *args, **kwargs):
         self.update_size()
 
-    def update_size(self, *args, **kwargs): 
+    def update_size(self, *args, **kwargs):
         window_width, window_height = Window.size
         self.size_hint = (None, None) 
         self.size = (dp(window_width - (self.parent_padding * 2)), dp(window_height / 5))
@@ -187,12 +208,10 @@ class Card(RelativeLayout):
         expand_options_button = self.ids.expand_options
         window_width, _ = Window.size
         if expand_options_button.state == "down":
-            print("down")
             confirm_button.pos_hint["x"] = 0.6
             confirm_button.x = window_width * 0.6
             expand_options_button.color = (0, 0, 0, 0.3)
         else:
-            print("up")
             confirm_button.pos_hint["x"] = 2
             confirm_button.x = window_width*2
             expand_options_button.color = (0, 0, 0, 1)
@@ -398,6 +417,9 @@ class AddFoodScreenSaveBack(BoxLayout):
             print("Need a total weight")
             return
         
+        # add in hidden cols
+        form_dict["paused"] = False
+
         # append data
         reversed_column_names = form_data.columns[::-1]
         new_food_data = pl.concat([food_data, form_data.select(reversed_column_names)])

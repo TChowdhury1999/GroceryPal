@@ -1,6 +1,6 @@
-name,servings,servings_per_day,serving_weight,total_weight
-chicken breast,7.0,2.0,142.85,2000.0
-pepsi,17.0,1.0,333.0,10000.0
-gravy,16.0,2.0,5.0,500.0
-brocolli,8.0,3.0,2.0,4.0
-yoghurt,5.0,1.0,3.0,4.0
+name,servings,servings_per_day,serving_weight,total_weight,paused,last_updated
+chicken breast,7.0,2.0,142.85,2000.0,false,03/04/2024
+pepsi,17.0,1.0,333.0,10000.0,false,03/04/2024
+gravy,16.0,2.0,5.0,500.0,true,03/04/2024
+brocolli,7.0,3.0,2.0,4.0,false,03/04/2024
+yoghurt,5.0,1.0,3.0,4.0,false,03/04/2024
