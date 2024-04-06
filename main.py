@@ -27,6 +27,8 @@ class ControlBar(GridLayout):
         self.pos_hint = {"x":0.05, "y":0.08}
         self.food_name = food_name
 
+        self.action_list = []
+
         initial_state = 'down' if is_paused else 'normal'
         initial_text = "||" if is_paused else "|>"
         pause_button = ToggleButton(text=initial_text, state=initial_state)
@@ -47,17 +49,21 @@ class ControlBar(GridLayout):
         self.add_widget(refill_button)
 
         undo_button = Button(text="<-")
+        undo_button.bind(on_release = self.on_undo)
         self.add_widget(undo_button)
 
     def on_increase(self, *args):
+        self.action_list.append(1)
         self.change_portions(1)
 
     def on_decrease(self, *args):
+        self.action_list.append(-1)
         self.change_portions(-1)
 
     def on_refill(self, *args):
         delta = self.parent.total_weight / self.parent.serving_weight
         delta = int(delta)
+        self.action_list.append(delta)
         self.change_portions(delta)
 
     def change_portions(self, delta):
@@ -89,6 +95,33 @@ class ControlBar(GridLayout):
             .alias("paused")
         )
         food_df.write_csv("data/food_data.csv")
+        self.action_list.append("pause")
+
+    def on_undo(self, *args):
+        print(self.action_list)
+        if len(self.action_list)==0:
+            return
+        last_action = self.action_list[-1]
+        if last_action == "pause":
+            pause_button = self.ids.pause_button
+            if pause_button.state  == 'normal':
+                pause_button.state = "down"
+            else:
+                pause_button.state = "normal"
+            self.on_pause()
+            self.action_list.pop()
+        elif last_action == 1:
+            self.on_decrease()
+            self.action_list.pop()
+        elif last_action == -1:
+            self.on_increase()
+            self.action_list.pop()
+        else:
+            # the last action is delta for refills
+            [self.on_decrease() for _ in range(last_action)]
+            [self.action_list.pop() for _ in range(last_action)]
+        self.action_list.pop()
+        print(self.action_list)
 
 class Card(RelativeLayout):
     def __init__(self, row, parent_padding, **kwargs):
@@ -397,12 +430,11 @@ class AddFoodScreenSaveBack(BoxLayout):
         # read in current data and append 
         food_data = pl.read_csv("data/food_data.csv")
         form_data = pl.DataFrame(form_dict)
-
         # do some input checks
         if len(form_dict["name"]) == 0:
             print("Name needed")
             return
-        elif form_dict["name"] in form_data["name"]:
+        elif form_dict["name"] in food_data["name"]:
             print("Already in list")
             return
         elif len(form_dict["servings_per_day"]) == 0:
