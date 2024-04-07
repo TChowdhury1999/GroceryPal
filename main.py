@@ -1,4 +1,5 @@
 import polars as pl
+from datetime import datetime
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
@@ -98,7 +99,6 @@ class ControlBar(GridLayout):
         self.action_list.append("pause")
 
     def on_undo(self, *args):
-        print(self.action_list)
         if len(self.action_list)==0:
             return
         last_action = self.action_list[-1]
@@ -121,7 +121,6 @@ class ControlBar(GridLayout):
             [self.on_decrease() for _ in range(last_action)]
             [self.action_list.pop() for _ in range(last_action)]
         self.action_list.pop()
-        print(self.action_list)
 
 class Card(RelativeLayout):
     def __init__(self, row, parent_padding, **kwargs):
@@ -465,6 +464,9 @@ class AddFoodScreen(Screen):
 
 class GroceryPalApp(App):
     def build(self):
+        # on build, run the auto update logic
+        self.auto_food_update()
+
         # set window size 9:20 ratio
         Window.size = (360, 800)
         # Window.size = (450, 1000)
@@ -488,6 +490,27 @@ class GroceryPalApp(App):
         except Exception as e:
             print(f"Error loading data: {e}")
             return None
+    
+    def auto_food_update(self):
+        # read in date 
+        with open("data/last_date.txt") as file:
+            written_date = file.read()
+        # check if first time initialisation needed
+        if len(written_date) == 0:
+            self.initialise_date()
+            return()
+        else:
+            print("the last time you opened was ", written_date)
+        # calculate time since last opened
+        last_updated_date = datetime.strptime(written_date, "%d/%m/%Y").date()
+        today_date =  datetime.now().date()
+        day_delta = today_date - last_updated_date
+        print(day_delta)
+        
+    def initialise_date(self):
+        today_date = datetime.now().date().strftime("%d/%m/%Y")
+        with open("data/last_date.txt", 'w') as file:
+            file.write(today_date)
         
         
 if __name__ == '__main__':
