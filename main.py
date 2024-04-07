@@ -19,8 +19,7 @@ from kivy.uix.popup import Popup
 from kivy.graphics import Color, Rectangle, RoundedRectangle, Line, Ellipse
 from kivy.uix.progressbar import ProgressBar
 from kivy.clock import Clock
-from kivy.uix.widget import Widget
-from kivy.core.image import Image
+from kivy.uix.popup import Popup
 
 class ControlBar(GridLayout):
     def __init__(self, food_name, is_paused, **kwargs):
@@ -455,18 +454,38 @@ class AddFoodScreenSaveBack(BoxLayout):
         # do some input checks
         if len(form_dict["name"]) == 0:
             print("Name needed")
+            name_needed_popup = Popup(title = "Could not save new food",
+                                      content=Label(text="Your new food needs a name!"),
+                                      size_hint=(0.8, 0.3))
+            name_needed_popup.open()
             return
         elif form_dict["name"] in food_data["name"]:
             print("Already in list")
+            already_in_list_popup = Popup(title = "Could not save new food",
+                                          content=Label(text="This food is already in your foods!"),
+                                          size_hint=(0.8, 0.3))
+            already_in_list_popup.open()
             return
         elif len(str(form_dict["servings_per_day"])) == 0:
             print("Need a servings per day")
+            servings_per_day_popup = Popup(title = "Could not save new food",
+                                           content=Label(text="Need to know how many you eat a day!"),
+                                           size_hint=(0.8, 0.3))
+            servings_per_day_popup.open()
             return
         elif len(str(form_dict["serving_weight"]))==0:
             print("Need a serving weight")
+            serving_weight_popup = Popup(title = "Could not save new food",
+                                         content=Label(text="Need to know how much a serving weighs!"),
+                                         size_hint=(0.8, 0.3))
+            serving_weight_popup.open()
             return
         elif len(str(form_dict["total_weight"])) == 0:
             print("Need a total weight")
+            total_weight_popup = Popup(title = "Could not save new food",
+                                       content=Label(text="Need to know how much a new purchase \n of the food weighs!"),
+                                       size_hint=(0.8, 0.3))
+            total_weight_popup.open()
             return
 
         # append data
@@ -478,6 +497,11 @@ class AddFoodScreenSaveBack(BoxLayout):
         main_screen_lower = [i for i in App.get_running_app().root.get_screen("main_screen").children[0].children if type(i).__name__ == "MainScreenLower"][0]
         food_card_list = [i for i in main_screen_lower.children if type(i).__name__ == "MainScreenLowerScroll"][0].children[0]
         food_card_list.__init__(reset = True)
+
+        # tell the user save is successfull
+        save_popup = Popup(title = "New food saved",
+                           content=Label(text="Your new food is now included!"),
+                           size_hint=(0.8, 0.3))
 
 class AddFoodScreen(Screen):
     pass
