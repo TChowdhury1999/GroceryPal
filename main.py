@@ -501,19 +501,38 @@ class GroceryPalApp(App):
         # read in date 
         with open("data/last_date.txt") as file:
             written_date = file.read()
+
         # check if first time initialisation needed
         if len(written_date) == 0:
-            self.initialise_date()
+            self.write_date()
             return()
-        else:
-            print("the last time you opened was ", written_date)
+        
         # calculate time since last opened
         last_updated_date = datetime.strptime(written_date, "%d/%m/%Y").date()
         today_date =  datetime.now().date()
-        day_delta = today_date - last_updated_date
-        print(day_delta)
+        day_delta = (today_date - last_updated_date).days
+
+        # loop through unpaused foods and remove servings
+        food_df = self.load_food_data()
+        food_df = food_df.with_columns(
+            (pl.col("servings") - pl.col("servings_per_day")*day_delta*(~pl.col("paused")))
+            .alias("servings")
+        )
+        food_df = food_df.with_columns(
+            pl.when(pl.col("servings") < 0)
+            .then(pl.lit(0))
+            .otherwise(pl.col("servings"))
+            .alias("servings")
+        )
         
-    def initialise_date(self):
+        # write new food df
+        food_df.write_csv("data/food_data.csv")
+
+        # write new date
+        self.write_date()
+
+        
+    def write_date(self):
         today_date = datetime.now().date().strftime("%d/%m/%Y")
         with open("data/last_date.txt", 'w') as file:
             file.write(today_date)
