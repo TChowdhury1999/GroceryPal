@@ -1,4 +1,5 @@
 import polars as pl
+import os
 from datetime import datetime
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -18,6 +19,8 @@ from kivy.uix.popup import Popup
 from kivy.graphics import Color, Rectangle, RoundedRectangle, Line, Ellipse
 from kivy.uix.progressbar import ProgressBar
 from kivy.clock import Clock
+from kivy.uix.widget import Widget
+from kivy.core.image import Image
 
 class ControlBar(GridLayout):
     def __init__(self, food_name, is_paused, **kwargs):
@@ -155,8 +158,14 @@ class Card(RelativeLayout):
 
         # image circle
         with self.canvas:
-            Color(0, 0, 1, 0.4)
+            Color(1, 1, 1, 1)
             self.image_circle = Ellipse()
+            valid_extensions = ['jpg', 'jpeg', 'png', 'gif']  # Add more extensions if needed
+            for ext in valid_extensions:
+                image_path = f"data/images/{self.food_name}.{ext}"
+                if os.path.exists(image_path):
+                    self.image_circle.source = image_path
+                    break
 
         # card main title
         main_title = Label(text=self.food_name.title(), size_hint = (None, None), text_size = self.size, font_size = dp(24),
@@ -536,7 +545,6 @@ class GroceryPalApp(App):
         today_date = datetime.now().date().strftime("%d/%m/%Y")
         with open("data/last_date.txt", 'w') as file:
             file.write(today_date)
-        
         
 if __name__ == '__main__':
     GroceryPalApp().run()
