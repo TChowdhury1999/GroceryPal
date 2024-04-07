@@ -246,7 +246,6 @@ class Card(RelativeLayout):
         self.ids.portion_label.text = str(int(servings)) + " Servings | " + days_str + " Days"
         self.ids.day_bar.value = days
 
-
     def update_confirm_remove_position(self, instance):
         confirm_button = self.ids.confirm_remove
         expand_options_button = self.ids.expand_options
@@ -267,12 +266,16 @@ class FoodCardsList(GridLayout):
         app_instance = App.get_running_app()
         food_df = app_instance.load_food_data()
 
+        # reset children
+        self.children = []
+
         self.cols = 1
         self.rows = len(food_df)+1
 
         self.spacing=dp(10) 
         card_padding=3
         self.padding=dp(card_padding)
+
     
         # create a card for each stored food item
         for row in food_df.rows(named=True):
@@ -432,6 +435,9 @@ class AddFoodScreenSaveBack(BoxLayout):
         text_inputs = [i.children[0] for i in form.children if type(i).__name__ == "AddFoodInputCard"]
         form_dict = {}
 
+        # add in hidden cols
+        form_dict["paused"] = False
+
         # put form data into a dictionary
         for i, form_input in enumerate(["total_weight", "serving_weight", "servings_per_day", 
                            "servings", "name"]):
@@ -440,10 +446,12 @@ class AddFoodScreenSaveBack(BoxLayout):
             except ValueError:
                 form_value = text_inputs[i].text
             form_dict[form_input] = form_value
+        
 
         # read in current data and append 
         food_data = pl.read_csv("data/food_data.csv")
         form_data = pl.DataFrame(form_dict)
+
         # do some input checks
         if len(form_dict["name"]) == 0:
             print("Name needed")
@@ -451,18 +459,15 @@ class AddFoodScreenSaveBack(BoxLayout):
         elif form_dict["name"] in food_data["name"]:
             print("Already in list")
             return
-        elif len(form_dict["servings_per_day"]) == 0:
+        elif len(str(form_dict["servings_per_day"])) == 0:
             print("Need a servings per day")
             return
-        elif len(form_dict["serving_weight"])==0:
+        elif len(str(form_dict["serving_weight"]))==0:
             print("Need a serving weight")
             return
-        elif len(form_dict["total_weight"]) == 0:
+        elif len(str(form_dict["total_weight"])) == 0:
             print("Need a total weight")
             return
-        
-        # add in hidden cols
-        form_dict["paused"] = False
 
         # append data
         reversed_column_names = form_data.columns[::-1]
