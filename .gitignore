@@ -1,0 +1,5 @@
+# Ignore the api_key.txt file
+api_key.txt
+
+# Ignore all files and directories inside the data/images/ directory
+data/images/*
