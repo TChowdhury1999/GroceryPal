@@ -76,6 +76,12 @@ class ControlBar(GridLayout):
             .otherwise(pl.col("servings"))
             .alias("servings")
         )
+        food_df = food_df.with_columns(
+            pl.when(pl.col("servings") < 0)
+            .then(pl.lit(0))
+            .otherwise(pl.col("servings"))
+            .alias("servings")
+        )
         food_df.write_csv("data/food_data.csv")
         self.parent.update_portions()
 
