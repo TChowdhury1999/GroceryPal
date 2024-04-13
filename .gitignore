@@ -1,5 +1,8 @@
 # Ignore the api_key.txt file
-api_key.txt
+data/api_key.txt
+
+# Ignore the Google Custom Search Engine ID file
+data/cse_id.txt
 
 # Ignore all files and directories inside the data/images/ directory
 data/images/*

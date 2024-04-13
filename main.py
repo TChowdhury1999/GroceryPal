@@ -1,5 +1,6 @@
 import polars as pl
 import os
+import requests
 from datetime import datetime
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -511,6 +512,8 @@ class GroceryPalApp(App):
         # on build, run the auto update logic
         self.auto_food_update()
 
+        self.get_image_urls("bisto gravy red")
+
         # set window size 9:20 ratio
         Window.size = (360, 800)
         # Window.size = (450, 1000)
@@ -526,6 +529,30 @@ class GroceryPalApp(App):
 
         return sm
     
+    def get_image_urls(self, query):
+        # Google Custom Search API Endpoint
+        search_url = 'https://www.googleapis.com/customsearch/v1'
+        # Get API key
+        with open("data/api_key.txt") as file:
+            api_key = file.read()
+        # Get custom search engine id
+        with open("data/cse_id.txt") as file:
+            cse_id = file.read()
+        # Parameters for the API request
+        params = {
+            'key': api_key,
+            'cx': cse_id,
+            'q': query,
+            'searchType': 'image'
+        }
+        
+        # Making a GET request to the API
+        response = requests.get(search_url, params=params)
+        data = response.json()
+        for i in data["items"]:
+            print(i)
+            print("\n")
+
     def load_food_data(self):
         # load in food data
         try:
@@ -568,12 +595,13 @@ class GroceryPalApp(App):
 
         # write new date
         self.write_date()
-
-        
+      
     def write_date(self):
         today_date = datetime.now().date().strftime("%d/%m/%Y")
         with open("data/last_date.txt", 'w') as file:
             file.write(today_date)
+
+    
         
 if __name__ == '__main__':
     GroceryPalApp().run()
