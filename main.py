@@ -431,20 +431,28 @@ class AddImageSearchBar(BoxLayout):
         self.orientation = "horizontal"
 
         # search text bar
-        search_bar = TextInput(size_hint_x = 0.7)
+        search_bar = TextInput(size_hint_x = 0.7, cursor_color="black")
         self.add_widget(search_bar)
 
         # search button
-        search_button = Button(text="Search", size_hint_x = 0.3)
+        search_button = Button(text="Search", size_hint_x = 0.25, pos_hint = {"center_x": 0.85}, color="black", background_color="D2DFF3", 
+                               background_normal="false")
         self.add_widget(search_button)
-
 
 class AddImageGrid(BoxLayout):
     def __init__(self, **kwargs):
-        super(AddImageGrid, self).__init__(**kwargs)       
+        super(AddImageGrid, self).__init__(**kwargs)   
+        self.orientation = "horizontal"    
         self.size_hint_y = 0.65
-        test_label = Label(text="image grid here")
-        self.add_widget(test_label)
+        self.size_hint_x = 0.9
+        self.pos_hint = {"center_x" : 0.5}
+        group = "image_options"
+
+        for i in range(3):
+            image_option = ToggleButton(size_hint_y = 0.8, pos_hint = {"center_y": 0.5}, group=group)
+            self.ids[f"image_option_{i}"] = image_option
+            self.add_widget(image_option)
+        
 
 class AddImageDiv(BoxLayout):
     def __init__(self, **kwargs):
