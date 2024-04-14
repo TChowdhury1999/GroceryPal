@@ -1,6 +1,6 @@
 name,servings,servings_per_day,serving_weight,total_weight,paused
-chicken breast,2.0,2.0,142.85,2000.0,false
+chicken breast,0.0,2.0,142.85,2000.0,false
 pepsi,13.0,1.0,333.0,10000.0,true
-gravy,2.0,2.0,12.0,500.0,false
+gravy,0.0,2.0,12.0,500.0,false
 brocolli,0.0,3.0,100.0,900.0,false
 yoghurt,0.0,1.0,100.0,950.0,false

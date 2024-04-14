@@ -22,6 +22,17 @@ from kivy.uix.progressbar import ProgressBar
 from kivy.clock import Clock
 from kivy.uix.popup import Popup
 
+"""
+To-do
+
+- image selection
+- input ur own api key & cse id
+- colors?
+- icons for card buttons
+
+"""
+
+
 class ControlBar(GridLayout):
     def __init__(self, food_name, is_paused, **kwargs):
         super(ControlBar, self).__init__(**kwargs)
@@ -398,7 +409,7 @@ class AddFoodInputCard(RelativeLayout):
 class AddFoodScreenForm(GridLayout):
     def __init__(self, **kwargs):
         super(AddFoodScreenForm, self).__init__(**kwargs)
-        self.rows = 6
+        self.rows = 5
         card_padding = dp(10)
         name_card = AddFoodInputCard("Name:", card_padding)
         self.add_widget(name_card)
@@ -410,8 +421,50 @@ class AddFoodScreenForm(GridLayout):
         self.add_widget(serving_weight)
         total_weight = AddFoodInputCard("Total Weight (g)", card_padding, input_type="number")
         self.add_widget(total_weight)
-        add_image_card = Label(text="Add Image Placeholder", color="black")
-        self.add_widget(add_image_card)
+
+class AddImageSearchBar(BoxLayout):
+    def __init__(self, **kwargs):
+        super(AddImageSearchBar, self).__init__(**kwargs)   
+        self.size_hint_x = 0.9
+        self.size_hint_y = 0.15 
+        self.pos_hint = {"center_x" : 0.5}
+        self.orientation = "horizontal"
+
+        # search text bar
+        search_bar = TextInput(size_hint_x = 0.7)
+        self.add_widget(search_bar)
+
+        # search button
+        search_button = Button(text="Search", size_hint_x = 0.3)
+        self.add_widget(search_button)
+
+
+class AddImageGrid(BoxLayout):
+    def __init__(self, **kwargs):
+        super(AddImageGrid, self).__init__(**kwargs)       
+        self.size_hint_y = 0.65
+        test_label = Label(text="image grid here")
+        self.add_widget(test_label)
+
+class AddImageDiv(BoxLayout):
+    def __init__(self, **kwargs):
+        super(AddImageDiv, self).__init__(**kwargs)
+
+        self.orientation="vertical"
+
+        search_label = Label(text= "Select Image for Food", color="black", size_hint_y = 0.2)
+        self.add_widget(search_label)
+
+        image_search_bar = AddImageSearchBar()
+        self.add_widget(image_search_bar)
+
+        image_grid = AddImageGrid()
+        self.add_widget(image_grid)
+
+    def update_rect(self, instance, value):
+        # Update the position and size of the rectangle
+        self.rect.pos = (self.x+self.rect_padding/2, self.y+self.rect_padding/2)
+        self.rect.size = (self.width - self.rect_padding, self.height - self.rect_padding)
 
 class AddFoodScreenSaveBack(BoxLayout):
     def __init__(self, **kwargs):
@@ -512,7 +565,7 @@ class GroceryPalApp(App):
         # on build, run the auto update logic
         self.auto_food_update()
 
-        self.get_image_urls("bisto gravy red")
+        # self.get_image_urls("bisto gravy red")
 
         # set window size 9:20 ratio
         Window.size = (360, 800)
