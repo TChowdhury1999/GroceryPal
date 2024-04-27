@@ -31,7 +31,6 @@ To-do
 - colors?
 - icons for card buttons
 - overwriting is how we edit
-- save food take back to main page
 
 """
 
