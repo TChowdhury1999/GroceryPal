@@ -278,14 +278,14 @@ class Card(RelativeLayout):
         food_data = App.get_running_app().load_food_data()
         updated_food_data = food_data.filter(pl.col("name") != self.food_name)
         updated_food_data.write_csv("data/food_data.csv")
-        self.parent.__init__(reset = True)
+        self.parent.__init__()
         removed_food_popup = Popup(title = "Food Deleted!",
                             content=Label(text=f"Removed {self.food_name}"),
                             size_hint=(0.8, 0.3))
         removed_food_popup.open()
 
 class FoodCardsList(GridLayout):
-    def __init__(self, reset = False, **kwargs):
+    def __init__(self, **kwargs):
         super(FoodCardsList, self).__init__(**kwargs)
         # load in food data
         app_instance = App.get_running_app()
@@ -538,7 +538,6 @@ class ImageDiv(BoxLayout):
 class AddFoodScreenSaveBack(BoxLayout):
     def __init__(self, **kwargs):
         super(AddFoodScreenSaveBack, self).__init__(**kwargs)
-        # self.size_hint_y = 0.1
         back_button = Button(text="Back")
         back_button.bind(on_release = self.go_to_main)
         self.add_widget(back_button)
@@ -546,7 +545,7 @@ class AddFoodScreenSaveBack(BoxLayout):
         save_button.bind(on_release = self.save_food)
         self.add_widget(save_button)
 
-    def go_to_main(self, instance):
+    def go_to_main(self, *args, **kwargs):
         App.get_running_app().root.transition = SlideTransition(direction="right")
         App.get_running_app().root.current = "main_screen"
         App.get_running_app().root.transition = SlideTransition(direction="left")
@@ -635,7 +634,7 @@ class AddFoodScreenSaveBack(BoxLayout):
         # update the food card list in main page
         main_screen_lower = [i for i in App.get_running_app().root.get_screen("main_screen").children[0].children if type(i).__name__ == "MainScreenLower"][0]
         food_card_list = [i for i in main_screen_lower.children if type(i).__name__ == "MainScreenLowerScroll"][0].children[0]
-        food_card_list.__init__(reset = True)
+        food_card_list.__init__()
 
         # tell the user save is successfull
         save_popup = Popup(title = "New food saved",
@@ -643,7 +642,11 @@ class AddFoodScreenSaveBack(BoxLayout):
                            size_hint=(0.8, 0.3))
         save_popup.open()
 
+        # reset add food screen
+        self.parent.__init__()
+
         # go back to main page code below
+        self.go_to_main()
         
 class AddFoodScreen(Screen):
     pass
