@@ -27,11 +27,11 @@ from kivy.uix.popup import Popup
 """
 To-do
 
-- image selection
 - input ur own api key & cse id
 - colors?
 - icons for card buttons
 - overwriting is how we edit
+- save food take back to main page
 
 """
 
@@ -214,8 +214,9 @@ class Card(RelativeLayout):
         expand_options_button.bind(on_release=self.update_confirm_remove_position)
         self.add_widget(expand_options_button)
 
-        confirm_remove_button = Button(text="Confirm Remove?", size_hint=(0.3, 0.05), font_size = dp(12), pos_hint={"x":2, "y":0.8}, color="red",
-                                       background_normal = "", background_color = (0.9, 0.9, 0.9, 0.4))
+        confirm_remove_button = Button(text="Delete Food?", size_hint=(0.25, 0.05), font_size = dp(12), pos_hint={"x":2, "y":0.82}, color="red",
+                                       background_normal = "", background_color = (0.9, 0.9, 0.9, 0.97))
+        confirm_remove_button.bind(on_release = self.remove_card)
         self.ids["confirm_remove"] = confirm_remove_button
         self.add_widget(confirm_remove_button)
     
@@ -265,13 +266,23 @@ class Card(RelativeLayout):
         expand_options_button = self.ids.expand_options
         window_width, _ = Window.size
         if expand_options_button.state == "down":
-            confirm_button.pos_hint["x"] = 0.6
-            confirm_button.x = window_width * 0.6
+            confirm_button.pos_hint["x"] = 0.625
+            confirm_button.x = window_width * 0.625
             expand_options_button.color = (0, 0, 0, 0.3)
         else:
             confirm_button.pos_hint["x"] = 2
             confirm_button.x = window_width*2
             expand_options_button.color = (0, 0, 0, 1)
+
+    def remove_card(self, *args, **kwargs):
+        food_data = App.get_running_app().load_food_data()
+        updated_food_data = food_data.filter(pl.col("name") != self.food_name)
+        updated_food_data.write_csv("data/food_data.csv")
+        self.parent.__init__(reset = True)
+        removed_food_popup = Popup(title = "Food Deleted!",
+                            content=Label(text=f"Removed {self.food_name}"),
+                            size_hint=(0.8, 0.3))
+        removed_food_popup.open()
 
 class FoodCardsList(GridLayout):
     def __init__(self, reset = False, **kwargs):
@@ -634,7 +645,6 @@ class AddFoodScreenSaveBack(BoxLayout):
 
         # go back to main page code below
         
-
 class AddFoodScreen(Screen):
     pass
 
@@ -642,11 +652,6 @@ class GroceryPalApp(App):
     def build(self):
         # on build, run the auto update logic
         self.auto_food_update()
-
-        # self.get_image_urls("bisto gravy red")
-        url = "https://digitalcontent.api.tesco.com/v2/media/ghs/ada2712a-9cf3-4137-8f45-28d6a6da7b94/ad52630a-1cc9-4e8a-abb3-9533f9313b79_1481660070.jpeg?h=960&w=960"
-        # self.download_image(url, "data/images/image_cache/cache_image_1.png")
-        # urllib.request.urlretrieve(url)
 
         # set window size 9:20 ratio
         Window.size = (360, 800)
@@ -659,8 +664,6 @@ class GroceryPalApp(App):
         sm = ScreenManager()
         sm.add_widget(MainScreen(name='main_screen'))
         sm.add_widget(AddFoodScreen(name="add_food_screen"))
-
-
         return sm
     
     def get_image_urls(self, query):
@@ -690,7 +693,6 @@ class GroceryPalApp(App):
             link_list.append(unique_image_data["link"])
         return(link_list)
     
-
     def load_food_data(self):
         # load in food data
         try:
