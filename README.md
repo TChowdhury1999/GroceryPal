@@ -23,6 +23,6 @@ There are many resources online about how you can export Kivy apps to Android, i
 - **Inventory Management:** Easily refill your inventory after shopping trips. Pause tracking for items temporarily removed from your diet.
 - **Add Food:** Customize your grocery list by adding new items, specifying servings, serving sizes, and even uploading images.
 
-
+![example]([https://user-images.githubusercontent.com/48531291/231289123-4b1fe71d-bcfb-4e88-a137-d0d9637582b4.gif])
 
 Created by: Tanjim Chowdhury
