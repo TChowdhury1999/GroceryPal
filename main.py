@@ -1,10 +1,11 @@
 import polars as pl
 import os
+import shutil
 import requests
 from datetime import datetime
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.relativelayout import RelativeLayout
@@ -12,6 +13,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.label import Label
+from kivy.uix.image import Image
 from kivy.metrics import dp
 from kivy.core.window import Window
 from kivy.config import Config
@@ -29,6 +31,7 @@ To-do
 - input ur own api key & cse id
 - colors?
 - icons for card buttons
+- overwriting is how we edit
 
 """
 
@@ -432,31 +435,77 @@ class AddImageSearchBar(BoxLayout):
 
         # search text bar
         search_bar = TextInput(size_hint_x = 0.7, cursor_color="black")
+        self.ids.search_bar = search_bar
         self.add_widget(search_bar)
 
+        # blank space
+        blank_space = Label(text="", color =  (0.9, 0.9, 0.9, 1), size_hint_x = 0.02)
+        self.add_widget(blank_space)
+
         # search button
-        search_button = Button(text="Search", size_hint_x = 0.25, pos_hint = {"center_x": 0.85}, color="black", background_color="D2DFF3", 
+        search_button = Button(text="Search", size_hint_x = 0.26, pos_hint = {"center_x": 0.85}, color="black", background_color="D2DFF3", 
                                background_normal="false")
+        search_button.bind(on_release = self.search_images)
         self.add_widget(search_button)
 
-class AddImageGrid(BoxLayout):
+        # blank space
+        blank_space = Label(text="", color =  (0.9, 0.9, 0.9, 1), size_hint_x = 0.02)
+        self.add_widget(blank_space)
+    
+    def search_images(self, *args, **kwargs):
+        # get the text from the search box
+        search_query = self.ids.search_bar.text
+        print(search_query)
+        app = App.get_running_app()
+
+        # get links to images of this food
+        image_urls = app.get_image_urls(search_query)
+
+        # download the first 3
+        for count, image_url in enumerate(image_urls):
+            app.download_image(image_url, f"data/images/image_cache/cache_image_{count}.png")
+        
+        # show these images
+        image_grid = self.parent.ids.image_grid
+        image_grid.images_loaded = True
+        for i in range(3):
+            toggle_button = image_grid.ids[f"image_option_{i}"]
+            toggle_button.set_image(f"data/images/image_cache/cache_image_{i}.png")
+
+class ImageToggleButton(ToggleButton):
     def __init__(self, **kwargs):
-        super(AddImageGrid, self).__init__(**kwargs)   
+        super(ImageToggleButton, self).__init__(**kwargs)
+
+    def set_image(self, image_path):
+        self.image_widget = Image(source = image_path, size = (self.width*.9, self.height * .9), 
+                                  pos = (self.pos[0] + self.width*.05, self.pos[1]+ self.height*.05))
+        self.add_widget(self.image_widget)
+
+class ImageGrid(BoxLayout):
+    def __init__(self, **kwargs):
+        super(ImageGrid, self).__init__(**kwargs)   
         self.orientation = "horizontal"    
         self.size_hint_y = 0.65
         self.size_hint_x = 0.9
         self.pos_hint = {"center_x" : 0.5}
         group = "image_options"
+        self.images_loaded = False
 
         for i in range(3):
-            image_option = ToggleButton(size_hint_y = 0.8, pos_hint = {"center_y": 0.5}, group=group)
+            image_option = ImageToggleButton(size_hint_y = 0.8, pos_hint = {"center_y": 0.5}, group=group)
             self.ids[f"image_option_{i}"] = image_option
             self.add_widget(image_option)
+    
+    def get_selected_image(self):
+        for i in range(3):
+            image_option = self.ids[f"image_option_{i}"]
+            if image_option.state == 'down':
+                return i
+        return None
         
-
-class AddImageDiv(BoxLayout):
+class ImageDiv(BoxLayout):
     def __init__(self, **kwargs):
-        super(AddImageDiv, self).__init__(**kwargs)
+        super(ImageDiv, self).__init__(**kwargs)
 
         self.orientation="vertical"
 
@@ -466,7 +515,8 @@ class AddImageDiv(BoxLayout):
         image_search_bar = AddImageSearchBar()
         self.add_widget(image_search_bar)
 
-        image_grid = AddImageGrid()
+        image_grid = ImageGrid()
+        self.ids.image_grid = image_grid
         self.add_widget(image_grid)
 
     def update_rect(self, instance, value):
@@ -491,6 +541,7 @@ class AddFoodScreenSaveBack(BoxLayout):
         App.get_running_app().root.transition = SlideTransition(direction="left")
     
     def save_food(self, *args):
+
         # get data from form
         form = [i for i in self.parent.children if type(i).__name__ == "AddFoodScreenForm"][0]
         text_inputs = [i.children[0] for i in form.children if type(i).__name__ == "AddFoodInputCard"]
@@ -555,6 +606,21 @@ class AddFoodScreenSaveBack(BoxLayout):
         new_food_data = pl.concat([food_data, form_data.select(reversed_column_names)])
         new_food_data.write_csv("data/food_data.csv")
 
+        # add image
+        image_div = [i for i in self.parent.children if type(i).__name__ == "ImageDiv"][0]
+        image_grid = [i for i in image_div.children if type(i).__name__ == "ImageGrid"][0]
+        # check if image was searched
+        if image_grid.images_loaded:
+            # get selected image
+            selected_image = image_grid.get_selected_image()
+            # check if image was selected
+            if selected_image != None:
+                # save selected image into images with correct filename
+                print(selected_image)
+                food_name = form_dict["name"]
+                shutil.copy(f"data/images/image_cache/cache_image_{selected_image}.png", 
+                            f"data/images/{food_name}.png")
+
         # update the food card list in main page
         main_screen_lower = [i for i in App.get_running_app().root.get_screen("main_screen").children[0].children if type(i).__name__ == "MainScreenLower"][0]
         food_card_list = [i for i in main_screen_lower.children if type(i).__name__ == "MainScreenLowerScroll"][0].children[0]
@@ -564,6 +630,10 @@ class AddFoodScreenSaveBack(BoxLayout):
         save_popup = Popup(title = "New food saved",
                            content=Label(text="Your new food is now included!"),
                            size_hint=(0.8, 0.3))
+        save_popup.open()
+
+        # go back to main page code below
+        
 
 class AddFoodScreen(Screen):
     pass
@@ -574,6 +644,9 @@ class GroceryPalApp(App):
         self.auto_food_update()
 
         # self.get_image_urls("bisto gravy red")
+        url = "https://digitalcontent.api.tesco.com/v2/media/ghs/ada2712a-9cf3-4137-8f45-28d6a6da7b94/ad52630a-1cc9-4e8a-abb3-9533f9313b79_1481660070.jpeg?h=960&w=960"
+        # self.download_image(url, "data/images/image_cache/cache_image_1.png")
+        # urllib.request.urlretrieve(url)
 
         # set window size 9:20 ratio
         Window.size = (360, 800)
@@ -609,10 +682,14 @@ class GroceryPalApp(App):
         
         # Making a GET request to the API
         response = requests.get(search_url, params=params)
+
+        # read the data as a json and save the links to the images
         data = response.json()
-        for i in data["items"]:
-            print(i)
-            print("\n")
+        link_list = []
+        for unique_image_data in data["items"][:3]:
+            link_list.append(unique_image_data["link"])
+        return(link_list)
+    
 
     def load_food_data(self):
         # load in food data
@@ -662,7 +739,19 @@ class GroceryPalApp(App):
         with open("data/last_date.txt", 'w') as file:
             file.write(today_date)
 
-    
+    def download_image(self, url, save_path):
+        try:
+            # Send a GET request to the URL
+            response = requests.get(url)
+            # Check if the request was successful (status code 200)
+            if response.status_code == 200:
+                # Open the file in binary write mode and write the content
+                with open(save_path, 'wb') as file:
+                    file.write(response.content)
+            else:
+                print("")
+        except Exception as e:
+            print("")
         
 if __name__ == '__main__':
     GroceryPalApp().run()
